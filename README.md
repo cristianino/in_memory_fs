@@ -71,7 +71,7 @@ fs.create_file("/var/www/html", "index.php", b"<?php echo('Hola') ?>".to_vec());
 println!("{:#?}", fs);
 ```
 Print
-```json
+```txt
 FileSystem {
     root: Directory {
         name: "/",
