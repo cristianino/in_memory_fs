@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+use std::fs::File as StdFile;
+use std::io::{self, Write, Read};
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -27,7 +29,6 @@ impl Directory {
         self.files.insert(file.name.clone(), file);
     }
 
-    // Método para agregar un directorio
     pub fn add_directory(&mut self, dir: Directory) {
         self.directories.insert(dir.name.clone(), dir);
     }
@@ -70,5 +71,22 @@ impl FileSystem {
             }
         }
         current_dir.add_directory(dir);
+    }
+
+    // Método para guardar el estado del sistema de archivos en un archivo
+    pub fn save_to_file(&self, filename: &str) -> io::Result<()> {
+        let serialized = serde_json::to_string(&self).unwrap();
+        let mut file = StdFile::create(filename)?;
+        file.write_all(serialized.as_bytes())?;
+        Ok(())
+    }
+
+    // Método para cargar el estado del sistema de archivos desde un archivo
+    pub fn load_from_file(filename: &str) -> io::Result<Self> {
+        let mut file = StdFile::open(filename)?;
+        let mut contents = String::new();
+        file.read_to_string(&mut contents)?;
+        let deserialized: FileSystem = serde_json::from_str(&contents).unwrap();
+        Ok(deserialized)
     }
 }

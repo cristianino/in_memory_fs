@@ -1,4 +1,5 @@
 mod lib_dir_file;
+
 use lib_dir_file::FileSystem;
 
 fn main() {
@@ -34,7 +35,19 @@ fn main() {
     // Create files
     fs.create_file("/home/cnino", ".profile", b"export='$PATH=$PATH'".to_vec());
 
-    fs.create_file("/var/www/html", "index.php", b"<?php echo('Hola') ?>".to_vec());
+    fs.create_file(
+        "/var/www/html",
+        "index.php",
+        b"<?php echo('Hola') ?>".to_vec(),
+    );
 
-    println!("{:#?}", fs);
+    println!("memory: {:#?}", fs);
+
+    fs.save_to_file("filesystem.json")
+        .expect("Failed to save file");
+
+    // Cargar el estado del sistema de archivos desde un archivo
+    let loaded_fs = FileSystem::load_from_file("filesystem.json").expect("Failed to load file");
+
+    println!("persistent: {:#?}", loaded_fs);
 }
