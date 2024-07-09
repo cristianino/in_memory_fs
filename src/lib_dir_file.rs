@@ -23,7 +23,6 @@ impl Directory {
         }
     }
 
-    // Método para agregar un archivo
     pub fn add_file(&mut self, file: File) {
         self.files.insert(file.name.clone(), file);
     }
@@ -42,11 +41,10 @@ pub struct FileSystem {
 impl FileSystem {
     pub fn new() -> Self {
         Self {
-            root: Directory::new("root"),
+            root: Directory::new("/"),
         }
     }
 
-    // Método para crear un archivo en el sistema de archivos
     pub fn create_file(&mut self, path: &str, name: &str, content: Vec<u8>) {
         let parts = path.split('/').collect::<Vec<&str>>();
         let file = File {
@@ -62,7 +60,6 @@ impl FileSystem {
         current_dir.add_file(file);
     }
 
-    // Método para crear un directorio en el sistema de archivos
     pub fn create_directory(&mut self, path: &str, name: &str) {
         let parts = path.split('/').collect::<Vec<&str>>();
         let dir = Directory::new(name);
