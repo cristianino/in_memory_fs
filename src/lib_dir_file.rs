@@ -48,7 +48,7 @@ impl FileSystem {
 
     // Método para crear un archivo en el sistema de archivos
     pub fn create_file(&mut self, path: &str, name: &str, content: Vec<u8>) {
-        let mut parts = path.split('/').collect::<Vec<&str>>();
+        let parts = path.split('/').collect::<Vec<&str>>();
         let file = File {
             name: name.to_string(),
             content,
@@ -64,7 +64,7 @@ impl FileSystem {
 
     // Método para crear un directorio en el sistema de archivos
     pub fn create_directory(&mut self, path: &str, name: &str) {
-        let mut parts = path.split('/').collect::<Vec<&str>>();
+        let parts = path.split('/').collect::<Vec<&str>>();
         let dir = Directory::new(name);
         let mut current_dir = &mut self.root;
         for part in parts.iter() {
