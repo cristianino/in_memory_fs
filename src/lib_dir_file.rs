@@ -42,7 +42,7 @@ pub struct FileSystem {
 impl FileSystem {
     pub fn new() -> Self {
         Self {
-            root: Directory::new("/"),
+            root: Directory::new("root"),
         }
     }
 
@@ -73,20 +73,85 @@ impl FileSystem {
         current_dir.add_directory(dir);
     }
 
-    // Método para guardar el estado del sistema de archivos en un archivo
     pub fn save_to_file(&self, filename: &str) -> io::Result<()> {
         let serialized = serde_json::to_string(&self).unwrap();
         let mut file = StdFile::create(filename)?;
         file.write_all(serialized.as_bytes())?;
+        file.sync_all()?;
         Ok(())
     }
 
-    // Método para cargar el estado del sistema de archivos desde un archivo
     pub fn load_from_file(filename: &str) -> io::Result<Self> {
         let mut file = StdFile::open(filename)?;
         let mut contents = String::new();
         file.read_to_string(&mut contents)?;
         let deserialized: FileSystem = serde_json::from_str(&contents).unwrap();
         Ok(deserialized)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+
+    fn setup(test_filename: &str) {
+        if std::path::Path::new(test_filename).exists() {
+            fs::remove_file(test_filename).expect("Failed to delete existing test file");
+        }
+    }
+
+    fn cleanup(test_filename: &str) {
+        if std::path::Path::new(test_filename).exists() {
+            fs::remove_file(test_filename).expect("Failed to delete test file");
+        }
+    }
+
+    #[test]
+    fn test_create_file() {
+        let mut fs = FileSystem::new();
+        fs.create_directory("/", "dir1");
+        fs.create_file("/dir1", "file1.txt", b"Hello, world!".to_vec());
+
+        let dir = fs.root.directories.get("dir1").expect("Directory not found");
+        let file = dir.files.get("file1.txt").expect("File not found");
+
+        assert_eq!(file.name, "file1.txt");
+        assert_eq!(file.content, b"Hello, world!");
+    }
+
+    #[test]
+    fn test_create_directory() {
+        let mut fs = FileSystem::new();
+        fs.create_directory("/", "dir1");
+        fs.create_directory("/dir1", "dir2");
+
+        let dir1 = fs.root.directories.get("dir1").expect("Directory not found");
+        let dir2 = dir1.directories.get("dir2").expect("Directory not found");
+
+        assert_eq!(dir1.name, "dir1");
+        assert_eq!(dir2.name, "dir2");
+    }
+
+    #[test]
+    fn test_save_and_load_filesystem() {
+        let test_filename = "test_save_and_load_filesystem.json";
+        setup(test_filename);
+
+        let mut fs = FileSystem::new();
+        fs.create_directory("/", "dir1");
+        fs.create_file("/dir1", "file1.txt", b"Hello, world!".to_vec());
+
+        fs.save_to_file(test_filename).expect("Failed to save filesystem");
+
+        let loaded_fs = FileSystem::load_from_file(test_filename).expect("Failed to load filesystem");
+
+        let dir = loaded_fs.root.directories.get("dir1").expect("Directory not found");
+        let file = dir.files.get("file1.txt").expect("File not found");
+
+        assert_eq!(file.name, "file1.txt");
+        assert_eq!(file.content, b"Hello, world!");
+
+        cleanup(test_filename);
     }
 }
